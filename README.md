@@ -1,3 +1,4 @@
+#### Git repository reset counter because of leaked passwords: #2
 # **Description**
 ### This project's code contains the backend code of a system that handles tax declarations of property transactions
 
@@ -22,7 +23,7 @@ export jwtSecret="jwtSecret"
 export AdminSecret="anyRandomStrongKeyWillDo"
 
     //powershell
-$env:DatabaseURL = "url" 
+$env:DatabaseURL = "mysql://{ MYSQLUSER }:{ MYSQLPASSWORD }@{ MYSQLHOST }:{ MYSQLPORT }" 
 $env:DatabasePassword="pwd"
 $env:jwtSecret="jwtSecret"
 $env:AdminSecret="anyRandomStrongKeyWillDo"
