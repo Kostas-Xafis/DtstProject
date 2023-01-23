@@ -37,30 +37,39 @@ public class UserController {
     @Secured("ROLE_USER")
     @PostMapping("/update")
     public ResponseEntity<MessageResponse> updateUser(@Valid @RequestHeader HashMap<String, String> request,
-                           @Valid @RequestBody   HashMap<String, Object> body){
+                           @Valid @RequestBody HashMap<String, Object> body){
         User user = authTokenFilter.getUserFromRequestAuth(request);
         if(body.containsKey("password"))
             body.put("password", (Object) encoder.encode((String) body.get("password")));
         user.update(body);
         userDAOImpl.save(user);
-        return ResponseEntity.ok(new MessageResponse("Updated user successfully"));
+        return Response.Ok("Updated user successfully");
     }
 
     @GetMapping("/{id}")
-    public User getUser(@Valid @RequestHeader HashMap<String, String> request,
-                        @Valid @PathVariable  Long id) throws Exception {
+    public ResponseEntity<?> getUser(@Valid @RequestHeader HashMap<String, String> request,
+                        @Valid @PathVariable  Long id) {
         User user = authTokenFilter.getUserFromRequestAuth(request);
-        if(user.getId().equals(id) || user.hasRole(EnumRole.ROLE_ADMIN)) return userDAOImpl.findById(id);
-        else throw new Exception("Bad Request");
+        if(!isOwnerOrAdmin(user, id)) {
+            return Response.UnauthorizedAccess("Unauthorized user access");
+        }
+        return Response.Body(userDAOImpl.findById(id));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<MessageResponse> deleteUser(@Valid @RequestHeader HashMap<String, String> request,
                            @Valid @PathVariable  Long id) throws Exception {
         User user = authTokenFilter.getUserFromRequestAuth(request);
-        if(user.getId().equals(id) || user.hasRole(EnumRole.ROLE_ADMIN)) userDAOImpl.delete(id);
-        else throw new Exception("Bad Request");
-        return ResponseEntity.ok(new MessageResponse("Deleted user successfully"));
+        if(!isOwnerOrAdmin(user, id)) return Response.UnauthorizedAccess("Unauthorized user access");
+        userDAOImpl.delete(id);
+        return Response.Ok("Deleted user successfully");
     }
 
+    private Boolean isOwnerOrAdmin(User user, Long id) {
+        return (user == null || (!user.getId().equals(id) && !user.hasRole(EnumRole.ROLE_ADMIN)));
+    }
+
+    private Boolean isOwner(User user, Long id) {
+        return (user == null || !user.getId().equals(id));
+    }
 }

@@ -69,7 +69,7 @@ public class AuthController {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new JwtResponse(jwt,
+        return Response.Body(new JwtResponse(jwt,
                 userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getEmail(),
@@ -81,19 +81,19 @@ public class AuthController {
         ResponseEntity<?> exists = checkIfExists(signUpRequest);
         if(exists != null) return exists;
         createUser(signUpRequest, EnumRole.ROLE_USER);
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        return Response.Ok("User registered successfully!");
     }
 
     @PostMapping("/admin/signup")
     public ResponseEntity<?> registerAdmin(@Valid @RequestBody SignupRequest signUpRequest) {
         ResponseEntity<?> exists = checkIfExists(signUpRequest);
         if(exists != null) return exists;
-        if(signUpRequest.getAdminPassword().isEmpty() || !signUpRequest.getAdminPassword().equals(adminSecret))
-            return ResponseEntity.status(401)
-                    .body(new MessageResponse("Incorrect password: Authorization denied"));
+        if(signUpRequest.getAdminPassword().isEmpty() || !signUpRequest.getAdminPassword().equals(adminSecret)) {
+            return Response.UnauthorizedAccess("Incorrect password: Authorization denied");
+        }
         createUser(signUpRequest, EnumRole.ROLE_ADMIN);
 
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        return Response.Ok("User registered successfully!");
     }
 
     private ResponseEntity<?> checkIfExists(SignupRequest signUpRequest) {

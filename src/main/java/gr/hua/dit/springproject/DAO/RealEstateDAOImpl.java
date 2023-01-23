@@ -25,6 +25,15 @@ public class RealEstateDAOImpl implements RealEstateDAO{
         return (List<RealEstate>) query.getResultList();
     }
 
+    @Transactional
+    public List<RealEstate> getAllAvailable(Long id) {
+        Session session = entityManager.unwrap(Session.class);
+        Query query = session.createQuery("from RealEstate as re join TaxDeclaration as td on re.taxDeclaration.buyer!=null and re.seller.id!=:id", RealEstate.class);
+        query.setParameter("id", id);
+        return (List<RealEstate>) query.getResultList();
+    }
+
+
     @Override
     @Transactional
     public RealEstate findById(Long id) {

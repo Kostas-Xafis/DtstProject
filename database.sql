@@ -1,25 +1,25 @@
-CREATE DATABASE IF NOT EXISTS dtst;
-USE dtst;
+# CREATE DATABASE IF NOT EXISTS dtst;
+# USE dtst;
 
 #===================DROP CONSTRAINTS===================
-# ALTER TABLE Payment
-#     DROP CONSTRAINT FK_Payment_Tax_id
-# ;
-# ALTER TABLE Tax_Declaration
-#     DROP CONSTRAINT FK_Tax_Payment_id,
-#     DROP CONSTRAINT FK_Tax_Estate_id
-# ;
-# ALTER TABLE Real_Estate
-#     DROP CONSTRAINT FK_Real_Estate_Tax_id
-# ;
+ALTER TABLE Payment
+    DROP CONSTRAINT FK_Payment_Tax_id
+;
+ALTER TABLE Tax_Declaration
+    DROP CONSTRAINT FK_Tax_Payment_id,
+    DROP CONSTRAINT FK_Tax_Estate_id
+;
+ALTER TABLE Real_Estate
+    DROP CONSTRAINT FK_Real_Estate_Tax_id
+;
 #===================DROP TABLES===================
 
-# DROP TABLE Tax_Declaration;
-# DROP TABLE Payment;
-# DROP TABLE Real_Estate;
-# DROP TABLE User_Roles;
-# DROP TABLE Role;
-# DROP TABLE User;
+DROP TABLE Tax_Declaration;
+DROP TABLE Payment;
+DROP TABLE Real_Estate;
+DROP TABLE User_Roles;
+DROP TABLE Role;
+DROP TABLE User;
 # DROP DATABASE dtst;
 
 #===================CREATE TABLES===================
@@ -80,7 +80,7 @@ CREATE TABLE Tax_Declaration (
      SellerNotary_id int,
      Payment_id int,
      Real_estate_id int NOT NULL,
-     Declaration blob,
+     Declaration_content blob,
      Accepted int DEFAULT 0,
      Completed boolean DEFAULT false,
      CONSTRAINT PK_Tax PRIMARY KEY (Declaration_id),
@@ -112,15 +112,16 @@ INSERT INTO Real_Estate (Seller_id, Address, Road_number, Area_code, Area_size, 
 VALUES (1, 'Longhill St.', 5, 921023, 521, 'Real estate description...');
 
 INSERT INTO Tax_Declaration (Seller_id, Real_estate_id) VALUES (1, 1);
+UPDATE Real_Estate SET Tax_Declaration_id = 1 WHERE Real_estate_id=1;
 
 INSERT INTO User (Username, Password, FirstName, Lastname, Email)
 VALUES ('Brandy' ,'$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Bob', 'Randy', 'BobsEmail@mail.com');
 
 INSERT INTO User (Username, Password, FirstName, Lastname, Email)
-VALUES ('Joker', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Jeremiah', 'Brooker', 'Jerry@mail.com');
+VALUES ('Jooker', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Jeremiah', 'Brooker', 'Jerry@mail.com');
 
 INSERT INTO User (Username, Password, FirstName, Lastname, Email)
-VALUES ('Tsu San', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Kamikato', 'Tsuseki', 'Japan4Evs❤️@mail.com');
+VALUES ('Cliles', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Claxton', 'Miles', 'Clax@mail.com');
 
 INSERT INTO User (Username, Password, FirstName, Lastname, Email)
 VALUES ('Chopper', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Jonathan', 'Hopper', 'Hopper@gmail.com');
@@ -138,3 +139,4 @@ INSERT INTO User_Roles (User_id, Role_id) VALUES (6, 1);
 
 # SELECT * FROM User JOIN User_Roles UR on User.User_id = UR.User_id;
 # SELECT * FROM Tax_Declaration;
+# SELECT * FROM Real_Estate;

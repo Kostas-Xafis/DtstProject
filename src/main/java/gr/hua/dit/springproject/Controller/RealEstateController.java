@@ -34,8 +34,9 @@ public class RealEstateController {
     AuthTokenFilter authTokenFilter;
 
     @GetMapping()
-    public List<RealEstate> getAllRealEstates() {
-        return realEstateDAOImpl.getAll();
+    public List<RealEstate> getAllRealEstates(@Valid @RequestHeader HashMap<String, String> request) {
+        User user = authTokenFilter.getUserFromRequestAuth(request);
+        return realEstateDAOImpl.getAllAvailable(user.getId());
     }
 
     @GetMapping("/{id}")
@@ -46,7 +47,7 @@ public class RealEstateController {
     @Secured("ROLE_USER")
     @PostMapping()
     public ResponseEntity<ReturnID> postRealEstate(@Valid @RequestHeader HashMap<String, String> request,
-                                         @Valid @RequestBody   RealEstate estate) {
+                                                   @Valid @RequestBody RealEstate estate) {
         User user = authTokenFilter.getUserFromRequestAuth(request);
         estate.setId(0L);
         estate.setSeller(user);
@@ -54,33 +55,33 @@ public class RealEstateController {
         estate.setId(estate_id);
 
         TaxDeclaration td = new TaxDeclaration(0L, user, estate);
-        return ResponseEntity.ok().body(new ReturnID(taxDeclarationDAOImpl.save(td)));
+        return Response.Body(new ReturnID(taxDeclarationDAOImpl.save(td)));
     }
 
     @Secured("ROLE_USER")
     @PostMapping("/update")
     public ResponseEntity<MessageResponse> updateRealEstate(@Valid @RequestHeader HashMap<String, String> request,
-                                 @Valid @RequestBody   HashMap<String, Object> body) throws Exception {
+                                 @Valid @RequestBody   HashMap<String, Object> body) {
         Long estate_id = getLongFromObject(body.get("id"));
         User user = authTokenFilter.getUserFromRequestAuth(request);
-        if(user == null || !user.hasRealEstate(estate_id)) throw new Exception("Unauthorized Access");
+        if(user == null || !user.hasRealEstate(estate_id)) return Response.UnauthorizedAccess("User authorization failed");
         RealEstate re = user.getRealEstate(estate_id);
         re.update(body);
         realEstateDAOImpl.save(re);
-        return ResponseEntity.ok(new MessageResponse("Updated real estate successfully"));
+        return Response.Ok("Updated real estate successfully");
     }
 
     @Secured("ROLE_USER")
     @DeleteMapping("/{estate_id}")
-    public ResponseEntity<MessageResponse> deleteRealEstate(@Valid @RequestHeader HashMap<String, String> request, @PathVariable Long estate_id) throws Exception {
+    public ResponseEntity<MessageResponse> deleteRealEstate(@Valid @RequestHeader HashMap<String, String> request, @PathVariable Long estate_id) {
         User user = authTokenFilter.getUserFromRequestAuth(request);
-        if(user == null || !user.hasRealEstate(estate_id)) throw new Exception("Unauthorized Access");
+        if(user == null || !user.hasRealEstate(estate_id)) return Response.UnauthorizedAccess("User authorization failed");
 
         RealEstate re = user.getRealEstate(estate_id);
         user.getRealEstateList().remove(re);
         taxDeclarationDAOImpl.delete(taxDeclarationDAOImpl.findByEstateId(estate_id).getId());
         realEstateDAOImpl.delete(estate_id);
-        return ResponseEntity.ok(new MessageResponse("Deleted real estate successfully"));
+        return Response.Ok("Deleted real estate successfully");
     }
 
     private static class ReturnID {

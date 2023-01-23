@@ -5,6 +5,7 @@ target/
 **.log
 **.gz
 ./run.txt
+./TODO.txt
 DtstProject
 ### STS ###
 .apt_generated

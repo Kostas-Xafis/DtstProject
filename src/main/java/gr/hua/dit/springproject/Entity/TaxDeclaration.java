@@ -43,7 +43,7 @@ public class TaxDeclaration {
     private RealEstate real_estate;
 
     @Column(name="Declaration")
-    private String declaration_statement;
+    private String declaration_content;
 
     @Column(name="Accepted")
     private Integer accepted = 0;
@@ -61,7 +61,7 @@ public class TaxDeclaration {
 
     public TaxDeclaration(Long id, User buyer, User seller, User notary1,
                           User notary2, Payment payment, RealEstate real_estate,
-                          String declaration_statement, Integer accepted, Boolean completed) {
+                          String declaration_content, Integer accepted, Boolean completed) {
         this.id = id;
         this.buyer = buyer;
         this.seller = seller;
@@ -69,9 +69,9 @@ public class TaxDeclaration {
         this.notary2 = notary2;
         this.payment = payment;
         this.real_estate = real_estate;
-        this.declaration_statement = declaration_statement;
-        this.accepted = accepted;
-        this.completed = completed;
+        this.declaration_content = declaration_content;
+        setAccepted(accepted);
+        setCompleted(completed);
     }
 
     public Long getId() {
@@ -106,12 +106,12 @@ public class TaxDeclaration {
         this.real_estate = real_estate;
     }
 
-    public String getDeclaration_statement() {
-        return declaration_statement;
+    public String getDeclaration_content() {
+        return declaration_content;
     }
 
-    public void setDeclaration_statement(String declaration_statement) {
-        this.declaration_statement = declaration_statement;
+    public void setDeclaration_content(String declaration_content) {
+        this.declaration_content = declaration_content;
     }
 
     public User getNotary1() {
@@ -143,7 +143,7 @@ public class TaxDeclaration {
     }
 
     public void setAccepted(Integer accepted) {
-        this.accepted = accepted;
+        this.accepted = accepted == null ? 0 : accepted;
     }
 
     public Boolean getCompleted() {
@@ -151,7 +151,7 @@ public class TaxDeclaration {
     }
 
     public void setCompleted(Boolean completed) {
-        this.completed = completed;
+        this.completed = completed == null ? false : completed;
     }
 
     @Override
@@ -164,7 +164,7 @@ public class TaxDeclaration {
                 ", notary2=" + notary2 +
                 ", payment=" + payment +
                 ", real_estate=" + real_estate +
-                ", declaration_statement='" + declaration_statement + '\'' +
+                ", declaration_content='" + declaration_content + '\'' +
                 ", accepted=" + accepted +
                 ", completed=" + completed +
                 '}';
