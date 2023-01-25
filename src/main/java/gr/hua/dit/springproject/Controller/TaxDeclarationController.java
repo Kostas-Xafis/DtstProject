@@ -181,13 +181,11 @@ public class TaxDeclarationController {
     }
 
     @Secured("ROLE_ADMIN")
-    @PostMapping("/reset")
+    @DeleteMapping("/reset/{tax_id}")
     public ResponseEntity<MessageResponse> resetTaxDeclaration(@Valid @RequestHeader HashMap<String, String> request,
-                                                               @Valid @RequestBody HashMap<String, Long> body) {
-        User user = authTokenFilter.getUserFromRequestAuth(request);
-        Long tax_id = body.get("tax_declaration_id");
+                                                               @Valid @PathVariable  Long tax_id) {
         TaxDeclaration td = taxDeclarationDAOImpl.findById(tax_id);
-        if(user == null || td == null) return Response.BadRequest("Tax with the specific id was not found");
+        if(td == null) return Response.BadRequest("Tax with the specific id was not found");
         taxDeclarationDAOImpl.reset(td);
         return Response.Ok("Reset tax declaration successfully");
     }

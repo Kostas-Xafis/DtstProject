@@ -4,6 +4,7 @@ import gr.hua.dit.springproject.Config.AuthTokenFilter;
 import gr.hua.dit.springproject.DAO.RealEstateDAOImpl;
 import gr.hua.dit.springproject.DAO.TaxDeclarationDAOImpl;
 import gr.hua.dit.springproject.DAO.UserDAOImpl;
+import gr.hua.dit.springproject.Entity.EnumRole;
 import gr.hua.dit.springproject.Entity.RealEstate;
 import gr.hua.dit.springproject.Entity.TaxDeclaration;
 import gr.hua.dit.springproject.Entity.User;
@@ -36,6 +37,7 @@ public class RealEstateController {
     @GetMapping()
     public List<RealEstate> getAllRealEstates(@Valid @RequestHeader HashMap<String, String> request) {
         User user = authTokenFilter.getUserFromRequestAuth(request);
+        if(user.hasRole(EnumRole.ROLE_ADMIN)) return realEstateDAOImpl.getAll();
         return realEstateDAOImpl.getAllAvailable(user.getId());
     }
 
@@ -75,14 +77,16 @@ public class RealEstateController {
         return Response.Ok("Updated real estate successfully");
     }
 
-    @Secured("ROLE_USER")
     @DeleteMapping("/{estate_id}")
     public ResponseEntity<MessageResponse> deleteRealEstate(@Valid @RequestHeader HashMap<String, String> request, @PathVariable Long estate_id) {
         User user = authTokenFilter.getUserFromRequestAuth(request);
-        if(user == null || !user.hasRealEstate(estate_id)) return Response.UnauthorizedAccess("User authorization failed");
-
-        RealEstate re = user.getRealEstate(estate_id);
-        user.getRealEstateList().remove(re);
+        Boolean isAdmin = user.hasRole(EnumRole.ROLE_ADMIN);
+        if(!isAdmin && !user.hasRealEstate(estate_id)) {
+                return Response.UnauthorizedAccess("User authorization failed");
+        } else if(!isAdmin){
+            RealEstate re = user.getRealEstate(estate_id);
+            user.getRealEstateList().remove(re);
+        }
         realEstateDAOImpl.delete(estate_id);
         return Response.Ok("Deleted real estate successfully");
     }
