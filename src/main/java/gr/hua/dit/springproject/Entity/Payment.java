@@ -70,7 +70,7 @@ public class Payment {
     }
 
     public User getPayer() {
-        return payer;
+        return payer != null ? payer : new User();
     }
 
     public void setPayer(User payer) {

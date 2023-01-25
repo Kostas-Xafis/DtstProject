@@ -13,4 +13,6 @@ public interface RealEstateDAO {
     Long save(RealEstate re);
 
     void delete(Long id);
+
+    void delete(RealEstate realEstate);
 }

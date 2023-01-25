@@ -11,5 +11,6 @@ public interface UserDAO {
     User findByEmail(String email);
     User findByUsername(String username);
     void delete(Long id);
+    void delete(User user);
     List<String> getAuthorities(Long id);
 }

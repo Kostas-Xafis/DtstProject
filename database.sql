@@ -65,7 +65,7 @@ CREATE TABLE Real_Estate (
 CREATE TABLE Payment(
     Payment_id int NOT NULL AUTO_INCREMENT,
     Payer_id int NOT NULL,
-    Tax_id int NOT NULL,
+    Tax_id int,
     Amount int NOT NULL,
     Payed boolean DEFAULT false,
     CONSTRAINT PK_Payment_id PRIMARY KEY (Payment_id),
@@ -79,8 +79,8 @@ CREATE TABLE Tax_Declaration (
      BuyerNotary_id int,
      SellerNotary_id int,
      Payment_id int,
-     Real_estate_id int NOT NULL,
-     Declaration_content blob,
+     Real_estate_id int,
+     Declaration_content varchar(800),
      Accepted int DEFAULT 0,
      Completed boolean DEFAULT false,
      CONSTRAINT PK_Tax PRIMARY KEY (Declaration_id),
@@ -101,12 +101,13 @@ ALTER TABLE Payment
 ALTER TABLE Real_Estate
     ADD CONSTRAINT FK_Real_Estate_Tax_id FOREIGN KEY (Tax_Declaration_id) REFERENCES Tax_Declaration(Declaration_id)
 ;
+
 #===================DUMMY VALUES===================
 INSERT INTO Role (Role_id, Name) VALUES (1, 'ROLE_USER');
 INSERT INTO Role (Role_id, Name) VALUES (2, 'ROLE_ADMIN');
 
 INSERT INTO User (Username, Password, FirstName, Lastname, Email)
-VALUES ('Wackjon', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Jackson', 'Wagner', 'JustAnEmail@gmail.com');
+VALUES ('Wackjon', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Jackson', 'Wagner', 'Wacky@mail.com');
 
 INSERT INTO Real_Estate (Seller_id, Address, Road_number, Area_code, Area_size, Description)
 VALUES (1, 'Longhill St.', 5, 921023, 521, 'Real estate description...');
@@ -115,19 +116,19 @@ INSERT INTO Tax_Declaration (Seller_id, Real_estate_id) VALUES (1, 1);
 UPDATE Real_Estate SET Tax_Declaration_id = 1 WHERE Real_estate_id=1;
 
 INSERT INTO User (Username, Password, FirstName, Lastname, Email)
-VALUES ('Brandy' ,'$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Bob', 'Randy', 'BobsEmail@mail.com');
+VALUES ('Brandy' ,'$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Bob', 'Randy', 'Admin@mail.com');
 
 INSERT INTO User (Username, Password, FirstName, Lastname, Email)
-VALUES ('Jooker', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Jeremiah', 'Brooker', 'Jerry@mail.com');
+VALUES ('Joker', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Jeremiah', 'Brooker', 'Jerry@mail.com');
 
 INSERT INTO User (Username, Password, FirstName, Lastname, Email)
-VALUES ('Cliles', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Claxton', 'Miles', 'Clax@mail.com');
+VALUES ('Miles', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Claxton', 'Miles', 'Clax@mail.com');
 
 INSERT INTO User (Username, Password, FirstName, Lastname, Email)
-VALUES ('Chopper', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Jonathan', 'Hopper', 'Hopper@gmail.com');
+VALUES ('Chopper', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Jonathan', 'Hopper', 'Hopper@mail.com');
 
 INSERT INTO User (Username, Password, FirstName, Lastname, Email)
-VALUES ('McJordans', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Jordan', 'McGregory', 'MacNotDonalds@gmail.com');
+VALUES ('McJordan', '$2a$10$Nnua2EmpoyH1utde5w/GAudHsQctd2ldNir3eZ/2OpHoej0EiKtve', 'Jordan', 'McGregory', 'Jordy@mail.com');
 
 
 INSERT INTO User_Roles (User_id, Role_id) VALUES (1, 1);

@@ -1,10 +1,7 @@
 package gr.hua.dit.springproject.Controller;
 
 import gr.hua.dit.springproject.Config.AuthTokenFilter;
-import gr.hua.dit.springproject.DAO.PaymentDAOImpl;
-import gr.hua.dit.springproject.DAO.RealEstateDAOImpl;
-import gr.hua.dit.springproject.DAO.TaxDeclarationDAOImpl;
-import gr.hua.dit.springproject.DAO.UserDAOImpl;
+import gr.hua.dit.springproject.DAO.*;
 import gr.hua.dit.springproject.Entity.Payment;
 import gr.hua.dit.springproject.Entity.TaxDeclaration;
 import gr.hua.dit.springproject.Entity.User;
@@ -37,18 +34,18 @@ public class TaxDeclarationController {
     @Autowired
     AuthTokenFilter authTokenFilter;
 
+
     private Boolean assignedNotariesWithUser(TaxDeclaration td, User user) {
         Long sellerNotary_id = td.getNotary1().getId();
         Long buyerNotary_id = td.getNotary2().getId();
-        if (td == null || user == null || sellerNotary_id == null || buyerNotary_id == null
-                || (!sellerNotary_id.equals(user.getId())
+        if (td == null || user == null || (!sellerNotary_id.equals(user.getId())
                 && !buyerNotary_id.equals(user.getId()))) return false;
         return true;
     }
 
     @Secured("ROLE_ADMIN")
     @GetMapping()
-    public List<TaxDeclaration> getAllTaxDeclarations() {
+    public List<TaxDeclarationDAOImpl.TaxDeclarationResponse> getAllTaxDeclarations() {
         return taxDeclarationDAOImpl.getAll();
     }
 
@@ -78,11 +75,15 @@ public class TaxDeclarationController {
         if (td == null) {
             return Response.BadRequest("Tax declaration not found");
         }
+        if(td.getSeller().getId().equals(notary.getId()) || td.getBuyer().getId().equals(notary.getId()) ||
+            td.getNotary1().getId().equals(notary.getId()) || td.getNotary2().getId().equals(notary.getId()) ) {
+            return Response.BadRequest("Given notary is already part of the process");
+        }
 
         if (user.getId().equals(td.getSeller().getId())) { // User is seller
             td.setNotary1(notary);
             user.getSellerNotaryList().add(td);
-        } else if (td.getBuyer() != null && user.getId().equals(td.getBuyer().getId())) { // User is buyer
+        } else  { // User is buyer
             td.setBuyer(user);
             td.setNotary2(notary);
             user.getBuyerNotaryList().add(td);
@@ -104,10 +105,10 @@ public class TaxDeclarationController {
         }
 
         Long sellerNotary_id = td.getNotary1().getId();
-        td.setDeclaration_content((String) body.get("content"));
+        td.setDeclaration_content((String) body.get("declaration_content"));
         if (sellerNotary_id.equals(user.getId())) {
             Payment payment = new Payment(0L, td.getBuyer(), td, ((Number) body.get("payment_amount")).intValue(), false);
-            payment.setId(paymentDAOImpl.save(payment));
+            paymentDAOImpl.save(payment);
             td.setPayment(payment);
         }
         taxDeclarationDAOImpl.save(td);
@@ -117,11 +118,21 @@ public class TaxDeclarationController {
     @Secured("ROLE_USER")
     @PostMapping("/accept_declaration")
     public ResponseEntity<MessageResponse> acceptDeclaration(@Valid @RequestHeader HashMap<String, String> request,
-                                                             @Valid @RequestBody HashMap<String, Long> body) {
-        TaxDeclaration td = taxDeclarationDAOImpl.findById(body.get("tax_declaration_id"));
-        if (td == null || td.getDeclaration_content() == null) return Response.BadRequest("");
+                                                             @Valid @RequestBody HashMap<String, Object> body) {
+        TaxDeclaration td = taxDeclarationDAOImpl.findById(getLongFromObject(body.get("tax_declaration_id")));
+        Boolean accepted = (Boolean) body.get("acceptance");
+        if (accepted == null || td == null) {
+            return Response.BadRequest("Request body was not properly defined.");
+        }
+        if (td.getDeclaration_content() == null) {
+            return Response.UnauthorizedAccess("Cannot access this part of the tax declaration process yet.");
+        }
+
         User user = authTokenFilter.getUserFromRequestAuth(request);
-        if (user == null) return Response.UnauthorizedAccess("User authorization failed");
+
+        if (user == null) {
+            return Response.UnauthorizedAccess("User authorization failed.");
+        }
 
         Long seller_id = td.getSeller().getId();
         Long buyer_id = td.getBuyer().getId();
@@ -130,17 +141,24 @@ public class TaxDeclarationController {
             return Response.UnauthorizedAccess("Cannot access this part of the tax declaration process yet.");
         }
 
-        boolean isSeller = seller_id.equals(user.getId());
-        int currentAccept = td.getAccepted();
+        if(!accepted) {
+            td.setNotary2(null);
+            td.setBuyer(null);
+            td.setDeclaration_content(null);
+            td.setAccepted(0);
+        } else {
+            boolean isSeller = seller_id.equals(user.getId());
+            int currentAccept = td.getAccepted();
 
-        // If seller or buyer have already accepted
-        if ((currentAccept == 1 && !isSeller) || (currentAccept == 2 && isSeller)) {
-            return Response.BadRequest("Cannot accept again the declaration");
+            // If seller or buyer have already accepted
+            if ((currentAccept == 1 && isSeller) || (currentAccept == 2 && !isSeller) || currentAccept == 3) {
+                return Response.BadRequest("Cannot accept the declaration again.");
+            }
+            currentAccept += isSeller ? 1 : 2;
+            td.setAccepted(currentAccept);
         }
-
-        td.setAccepted((int) (currentAccept + Math.pow(2, isSeller ? 1 : 0)));
         taxDeclarationDAOImpl.save(td);
-        return Response.Ok("Accepted declaration successfully");
+        return Response.Ok((accepted ? "Accepted": "Declined") + " declaration successfully.");
     }
 
     @Secured("ROLE_USER")
@@ -148,10 +166,10 @@ public class TaxDeclarationController {
     public ResponseEntity<MessageResponse> uploadPayment(@Valid @RequestHeader HashMap<String, String> request,
                                                          @Valid @RequestBody HashMap<String, Long> body) {
         User user = authTokenFilter.getUserFromRequestAuth(request);
-        TaxDeclaration td = taxDeclarationDAOImpl.findById(getLongFromObject(body.get("tax_declaration_id")));
+        TaxDeclaration td = taxDeclarationDAOImpl.findById(body.get("tax_declaration_id"));
         Payment payment = td.getPayment();
 
-        if (td == null || user == null || payment == null || !user.getId().equals(payment.getPayer().getId())) {
+        if (user == null || td == null || !user.getId().equals(payment.getPayer().getId())) {
             return Response.UnauthorizedAccess("Cannot access this part of the tax declaration process yet.");
         }
 
@@ -159,11 +177,23 @@ public class TaxDeclarationController {
         td.setCompleted(true);
         paymentDAOImpl.save(payment);
         taxDeclarationDAOImpl.save(td);
-        realEstateDAOImpl.delete(td.getReal_estate().getId()); //Remove real estate from being available for purchase
         return Response.Ok("Updated payment successfully");
+    }
+
+    @Secured("ROLE_ADMIN")
+    @PostMapping("/reset")
+    public ResponseEntity<MessageResponse> resetTaxDeclaration(@Valid @RequestHeader HashMap<String, String> request,
+                                                               @Valid @RequestBody HashMap<String, Long> body) {
+        User user = authTokenFilter.getUserFromRequestAuth(request);
+        Long tax_id = body.get("tax_declaration_id");
+        TaxDeclaration td = taxDeclarationDAOImpl.findById(tax_id);
+        if(user == null || td == null) return Response.BadRequest("Tax with the specific id was not found");
+        taxDeclarationDAOImpl.reset(td);
+        return Response.Ok("Reset tax declaration successfully");
     }
 
     private Long getLongFromObject(Object obj) {
         return ((Number) obj).longValue();
     }
+
 }

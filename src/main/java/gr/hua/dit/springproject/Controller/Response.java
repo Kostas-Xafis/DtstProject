@@ -5,11 +5,11 @@ import org.springframework.http.ResponseEntity;
 
 public class Response {
     public static ResponseEntity<MessageResponse> BadRequest(String errorMessage) {
-        return ResponseEntity.badRequest().body(new MessageResponse(errorMessage));
+        return ResponseEntity.badRequest().body(new MessageResponse("Error: " + errorMessage));
     }
 
     public static ResponseEntity<MessageResponse> UnauthorizedAccess(String errorMessage) {
-        return ResponseEntity.status(401).body(new MessageResponse(errorMessage));
+        return ResponseEntity.status(401).body(new MessageResponse("Authorization Error: " + errorMessage));
     }
 
     public static ResponseEntity<MessageResponse> Ok(String responseMessage) {

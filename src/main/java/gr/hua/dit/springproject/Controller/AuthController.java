@@ -13,8 +13,6 @@ import gr.hua.dit.springproject.Repository.RoleRepository;
 import gr.hua.dit.springproject.Repository.UserRepository;
 import gr.hua.dit.springproject.Service.UserDetailsImpl;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -53,8 +51,6 @@ public class AuthController {
 
     @Value("${app.adminSecret}")
     private String adminSecret;
-
-    private static final Logger logger = LoggerFactory.getLogger(AuthTokenFilter.class);
 
     @PostMapping("/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {

@@ -51,11 +51,15 @@ public class RealEstateController {
         User user = authTokenFilter.getUserFromRequestAuth(request);
         estate.setId(0L);
         estate.setSeller(user);
-        Long estate_id = realEstateDAOImpl.save(estate);
-        estate.setId(estate_id);
+        ReturnID estate_id = new ReturnID(realEstateDAOImpl.save(estate));
 
         TaxDeclaration td = new TaxDeclaration(0L, user, estate);
-        return Response.Body(new ReturnID(taxDeclarationDAOImpl.save(td)));
+        taxDeclarationDAOImpl.save(td);
+
+        estate.setTaxDeclaration(td);
+        realEstateDAOImpl.save(estate);
+
+        return Response.Body(estate_id);
     }
 
     @Secured("ROLE_USER")
@@ -79,7 +83,6 @@ public class RealEstateController {
 
         RealEstate re = user.getRealEstate(estate_id);
         user.getRealEstateList().remove(re);
-        taxDeclarationDAOImpl.delete(taxDeclarationDAOImpl.findByEstateId(estate_id).getId());
         realEstateDAOImpl.delete(estate_id);
         return Response.Ok("Deleted real estate successfully");
     }

@@ -22,7 +22,9 @@ public class PaymentDAOImpl implements PaymentDAO {
     @Override
     @Transactional
     public Long save(Payment payment) {
-        return entityManager.merge(payment).getId();
+        Long id = entityManager.merge(payment).getId();
+        if(payment.getId().equals(0L)) payment.setId(id);
+        return id;
     }
 
     @Override

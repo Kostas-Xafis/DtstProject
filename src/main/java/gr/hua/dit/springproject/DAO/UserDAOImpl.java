@@ -17,29 +17,35 @@ public class UserDAOImpl implements UserDAO {
     @Autowired
     EntityManager entityManager;
 
+    @Autowired
+    RealEstateDAOImpl realEstateDAO;
+
+    @Autowired
+    TaxDeclarationDAOImpl taxDeclarationDAO;
+
+
     @Override
     @Transactional
     public List<User> getAll() {
         Session session = entityManager.unwrap(Session.class);
-        Query query = session.createQuery("select u.id, u.firstname, u.lastname, u.password, u.email" +
-                " from User as u", Object[].class);
-        return ((List<Object[]>) query.getResultList()).stream().map(User::objConvert).toList();
+        Query query = session.createQuery("from User", User.class);
+        return (List<User>) query.getResultList();
     }
 
     @Override
-    @Transactional
+    @Transactional()
     public void save(User user) {
         entityManager.merge(user);
     }
 
     @Override
-    @Transactional
+    @Transactional()
     public User findById(Long id) {
         return entityManager.find(User.class, id);
     }
 
     @Override
-    @Transactional
+    @Transactional()
     public User findByEmail(String email) {
         Session session = entityManager.unwrap(Session.class);
         Query query = session.createQuery("from User as u where u.email = :email", User.class);
@@ -48,7 +54,7 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
-    @Transactional
+    @Transactional()
     public User findByUsername(String username) {
         Session session = entityManager.unwrap(Session.class);
         Query query = session.createQuery("from User as u  where u.username = :username", User.class);
@@ -60,11 +66,19 @@ public class UserDAOImpl implements UserDAO {
     @Transactional()
     public void delete(Long id) {
         User user = entityManager.find(User.class, id);
+        delete(user);
+    }
+
+    @Override
+    @Transactional()
+    public void delete(User user) {
+        user.getRealEstateList().parallelStream().forEach(realEstateDAO::delete);
+        user.getAllTaxes().parallelStream().forEach(taxDeclarationDAO::reset);
         entityManager.remove(user);
     }
 
     @Override
-    @Transactional
+    @Transactional()
     public List<String> getAuthorities(Long id) {
         return entityManager.find(User.class, id)
                 .getRoles().stream().map(role -> role.getName().name()).toList();

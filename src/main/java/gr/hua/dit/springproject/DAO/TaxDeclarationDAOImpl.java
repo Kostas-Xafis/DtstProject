@@ -3,6 +3,7 @@ package gr.hua.dit.springproject.DAO;
 import gr.hua.dit.springproject.Entity.TaxDeclaration;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
+import jakarta.persistence.criteria.CriteriaUpdate;
 import jakarta.transaction.Transactional;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,17 +13,19 @@ import java.util.List;
 
 @Repository
 @Transactional
-public class TaxDeclarationDAOImpl implements TaxDeclarationDAO{
+public class TaxDeclarationDAOImpl implements TaxDeclarationDAO {
 
     @Autowired
     private EntityManager entityManager;
 
     @Override
     @Transactional
-    public List<TaxDeclaration> getAll() {
+    public List<TaxDeclarationResponse> getAll() {
         Session session = entityManager.unwrap(Session.class);
-        Query query = session.createQuery("from TaxDeclaration", TaxDeclaration.class);
-        return (List<TaxDeclaration>) query.getResultList();
+        Query query = session.createQuery("select id, seller.id as seller_id, " +
+                "buyer.id as buyer_id, notary1.id as seller_notary_id, notary2.id as buyer_notary_id," +
+                " payment.id as payment_id, real_estate.id as real_estate_id, accepted, declaration_content, completed from TaxDeclaration", Object[].class);
+        return ((List<Object[]>) query.getResultList()).parallelStream().map(TaxDeclarationResponse::fromObject).toList();
     }
 
     @Override
@@ -42,6 +45,7 @@ public class TaxDeclarationDAOImpl implements TaxDeclarationDAO{
     }
 
     @Override
+    @Transactional
     public TaxDeclaration findByEstateId(Long id) {
         Session session = entityManager.unwrap(Session.class);
         Query query = session.createQuery("from TaxDeclaration as td where td.real_estate.id=:id", TaxDeclaration.class);
@@ -52,13 +56,26 @@ public class TaxDeclarationDAOImpl implements TaxDeclarationDAO{
     @Override
     @Transactional
     public Long save(TaxDeclaration taxDeclaration) {
-        return entityManager.merge(taxDeclaration).getId();
+        Long id = entityManager.merge(taxDeclaration).getId();
+        if(taxDeclaration.getId().equals(0L)) taxDeclaration.setId(id);
+        return id;
     }
 
     @Override
     @Transactional
-    public void delete(Long id) {
-        TaxDeclaration td = entityManager.find(TaxDeclaration.class, id.intValue());
+    public void reset(TaxDeclaration td) {
+        td.setNotary1(null);
+        td.setNotary2(null);
+        td.setBuyer(null);
+        td.setAccepted(0);
+        td.setDeclaration_content("");
+        td.setPayment(null);
+        save(td);
+    }
+
+    @Override
+    @Transactional
+    public void delete(TaxDeclaration td) {
         entityManager.remove(td);
     }
 

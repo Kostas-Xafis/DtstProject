@@ -6,7 +6,7 @@ import java.util.List;
 
 public interface TaxDeclarationDAO {
 
-    List<TaxDeclaration> getAll();
+    List<?> getAll();
 
     TaxDeclaration findById(Long id);
 
@@ -14,5 +14,7 @@ public interface TaxDeclarationDAO {
 
     Long save(TaxDeclaration taxDeclaration);
 
-    void delete(Long id);
+    void delete(TaxDeclaration td);
+
+    void reset(TaxDeclaration td);
 }

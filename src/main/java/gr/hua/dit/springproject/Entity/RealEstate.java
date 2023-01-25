@@ -69,11 +69,19 @@ public class RealEstate {
     }
 
     public User getSeller() {
-        return seller;
+        return seller != null ? seller : new User();
     }
 
     public void setSeller(User seller) {
         this.seller = seller;
+    }
+
+    public TaxDeclaration getTaxDeclaration() {
+        return taxDeclaration;
+    }
+
+    public void setTaxDeclaration(TaxDeclaration taxDeclaration) {
+        this.taxDeclaration = taxDeclaration;
     }
 
     public String getAddress() {

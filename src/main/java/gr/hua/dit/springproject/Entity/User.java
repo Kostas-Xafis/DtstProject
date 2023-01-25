@@ -5,10 +5,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Entity
@@ -17,10 +16,13 @@ import java.util.Set;
         @UniqueConstraint(columnNames = "Email")
 })
 public class User {
+
+    public static Long inc = -1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name="User_id")
-    private Long id;
+    private Long id = (inc--);
 
     @NotBlank
     @Size(max = 40)
@@ -203,6 +205,11 @@ public class User {
 
     public void setBuyerNotaryList(List<TaxDeclaration> buyerNotaryList) {
         BuyerNotaryList = buyerNotaryList;
+    }
+
+    public List<TaxDeclaration> getAllTaxes() {
+        return Stream.of(getSellerNotaryList(), getBuyerTaxDeclarationList(),
+                getBuyerNotaryList()).flatMap(Collection::stream).collect(Collectors.toList());
     }
 
     @Override

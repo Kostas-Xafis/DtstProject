@@ -42,7 +42,7 @@ public class TaxDeclaration {
     @JsonBackReference(value="RealEstateTaxId")
     private RealEstate real_estate;
 
-    @Column(name="Declaration")
+    @Column(name="Declaration_content")
     private String declaration_content;
 
     @Column(name="Accepted")
@@ -83,7 +83,7 @@ public class TaxDeclaration {
     }
 
     public User getBuyer() {
-        return buyer;
+        return buyer != null ? buyer : new User();
     }
 
     public void setBuyer(User buyer) {
@@ -91,7 +91,7 @@ public class TaxDeclaration {
     }
 
     public User getSeller() {
-        return seller;
+        return seller != null ? seller : new User();
     }
 
     public void setSeller(User seller) {
@@ -115,7 +115,7 @@ public class TaxDeclaration {
     }
 
     public User getNotary1() {
-        return notary1;
+        return notary1 != null ? notary1 : new User();
     }
 
     public void setNotary1(User notary1) {
@@ -123,7 +123,7 @@ public class TaxDeclaration {
     }
 
     public User getNotary2() {
-        return notary2;
+        return notary2 != null ? notary2 : new User();
     }
 
     public void setNotary2(User notary2) {
@@ -131,7 +131,7 @@ public class TaxDeclaration {
     }
 
     public Payment getPayment() {
-        return payment;
+        return payment != null ? payment : new Payment();
     }
 
     public void setPayment(Payment payment) {
